@@ -1,0 +1,2095 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>GetAShader - RobloxShadeHost</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+
+    :root {
+      --bg-dark: #07090e;
+      --card-bg: rgba(18, 22, 34, 0.65);
+      --card-border: rgba(255,255,255,0.08);
+
+      --accent-cyan: #38bdf8;
+      --accent-purple: #a855f7;
+
+      --text-main: #f1f5f9;
+      --text-sub: #94a3b8;
+
+      --glow-color: rgba(56,189,248,0.15);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      scroll-behavior: smooth;
+    }
+
+    body {
+      background: var(--bg-dark);
+      color: var(--text-main);
+      overflow-x: hidden;
+    }
+
+    /* =========================
+       MOUSE LIGHT EFFECT
+    ========================== */
+
+    #spotlight {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+
+      background:
+        radial-gradient(
+          600px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+          var(--glow-color),
+          transparent 40%
+        );
+
+      z-index: 1;
+      transition: background 0.05s ease-out;
+    }
+
+    /* =========================
+       NAVIGATION
+    ========================== */
+
+    header {
+      position: fixed;
+      top: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1000;
+
+      width: 90%;
+      max-width: 900px;
+    }
+
+    nav {
+      background: rgba(13,17,26,0.75);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+
+      border: 1px solid var(--card-border);
+
+      padding: 10px 20px;
+      border-radius: 999px;
+
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      font-weight: 800;
+      font-size: 1.1rem;
+      color: white;
+    }
+
+    .logo-badge {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+
+      background:
+        linear-gradient(
+          135deg,
+          var(--accent-cyan),
+          var(--accent-purple)
+        );
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 20px;
+      list-style: none;
+    }
+
+    .nav-links a {
+      color: var(--text-sub);
+      text-decoration: none;
+      font-size: 0.88rem;
+      transition: 0.3s;
+    }
+
+    .nav-links a:hover {
+      color: white;
+    }
+
+    .nav-btn {
+      background:
+        linear-gradient(
+          135deg,
+          var(--accent-cyan),
+          #0284c7
+        );
+
+      color: #000;
+      font-weight: 700;
+
+      padding: 8px 18px;
+      border-radius: 999px;
+
+      text-decoration: none;
+      font-size: 0.85rem;
+    }
+
+    /* =========================
+       GENERAL
+    ========================== */
+
+    .container {
+      max-width: 1100px;
+      margin: auto;
+
+      padding-left: 24px;
+      padding-right: 24px;
+
+      position: relative;
+      z-index: 2;
+    }
+
+    /* =========================
+       HERO
+    ========================== */
+
+    .hero {
+      padding-top: 160px;
+      padding-bottom: 80px;
+
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+
+      gap: 40px;
+      align-items: center;
+    }
+
+    .badge-pill {
+      display: inline-flex;
+      align-items: center;
+
+      gap: 8px;
+
+      padding: 5px 12px;
+
+      border-radius: 999px;
+
+      background: rgba(56,189,248,0.1);
+
+      border: 1px solid rgba(56,189,248,0.2);
+
+      color: var(--accent-cyan);
+
+      font-size: 0.75rem;
+      font-weight: 600;
+
+      margin-bottom: 20px;
+    }
+
+    .hero-title {
+      font-size: 3.5rem;
+
+      font-weight: 800;
+
+      line-height: 1.1;
+
+      letter-spacing: -1.5px;
+
+      margin-bottom: 20px;
+
+      background:
+        linear-gradient(
+          180deg,
+          #ffffff 0%,
+          #94a3b8 100%
+        );
+
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-desc {
+      color: var(--text-sub);
+
+      font-size: 1.05rem;
+
+      line-height: 1.6;
+
+      margin-bottom: 30px;
+    }
+
+    .hero-btns {
+      display: flex;
+      gap: 16px;
+
+      flex-wrap: wrap;
+    }
+
+    .btn-primary {
+      display: inline-block;
+
+      background:
+        linear-gradient(
+          135deg,
+          var(--accent-cyan),
+          var(--accent-purple)
+        );
+
+      color: white;
+
+      font-weight: 700;
+
+      padding: 12px 28px;
+
+      border-radius: 999px;
+
+      text-decoration: none;
+
+      box-shadow:
+        0 10px 25px rgba(168,85,247,0.3);
+
+      transition: 0.3s;
+
+      border: none;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+
+      box-shadow:
+        0 15px 35px rgba(168,85,247,0.5);
+    }
+
+    .btn-secondary {
+      color: var(--text-main);
+
+      border: 1px solid var(--card-border);
+
+      padding: 12px 24px;
+
+      border-radius: 999px;
+
+      text-decoration: none;
+
+      font-weight: 600;
+
+      background: rgba(255,255,255,0.03);
+    }
+
+    /* =========================
+       MOCKUP
+    ========================== */
+
+    .mockup-card {
+      background: var(--card-bg);
+
+      border: 1px solid var(--card-border);
+
+      border-radius: 20px;
+
+      padding: 20px;
+
+      backdrop-filter: blur(20px);
+
+      box-shadow:
+        0 30px 60px rgba(0,0,0,0.6);
+    }
+
+    .mockup-header {
+      display: flex;
+      align-items: center;
+
+      gap: 8px;
+
+      margin-bottom: 16px;
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+
+      border-radius: 50%;
+    }
+
+    .dot-red {
+      background: #ff5f56;
+    }
+
+    .dot-yellow {
+      background: #ffbd2e;
+    }
+
+    .dot-green {
+      background: #27c93f;
+    }
+
+    /* =========================
+       SECTIONS
+    ========================== */
+
+    .comparison-section,
+    .security-section,
+    .faq-section,
+    .contact-section {
+      padding: 80px 0;
+    }
+
+    .section-title {
+      font-size: 2.2rem;
+      font-weight: 800;
+
+      margin-bottom: 10px;
+    }
+
+    .section-sub {
+      color: var(--text-sub);
+
+      margin-bottom: 40px;
+    }
+
+    /* =========================
+       BEFORE AFTER SLIDER
+    ========================== */
+
+    .slider-container {
+      position: relative;
+
+      width: 100%;
+
+      max-width: 900px;
+
+      height: 500px;
+
+      margin: auto;
+
+      border-radius: 20px;
+
+      overflow: hidden;
+
+      border: 1px solid var(--card-border);
+
+      box-shadow:
+        0 20px 50px rgba(0,0,0,0.5);
+
+      background: #111;
+
+      touch-action: none;
+
+      user-select: none;
+
+      cursor: ew-resize;
+    }
+
+    .slider-img {
+      position: absolute;
+
+      inset: 0;
+
+      width: 100%;
+      height: 100%;
+
+      object-fit: cover;
+
+      pointer-events: none;
+
+      user-select: none;
+    }
+
+    .img-after {
+      position: absolute;
+
+      top: 0;
+      left: 0;
+
+      width: 50%;
+      height: 100%;
+
+      overflow: hidden;
+    }
+
+    .img-after img {
+      position: absolute;
+
+      top: 0;
+      left: 0;
+
+      width: 900px;
+      height: 500px;
+
+      max-width: none;
+
+      object-fit: cover;
+
+      pointer-events: none;
+
+      user-select: none;
+    }
+
+    .slider-handle {
+      position: absolute;
+
+      top: 0;
+
+      left: 50%;
+
+      width: 4px;
+
+      height: 100%;
+
+      background: white;
+
+      transform: translateX(-50%);
+
+      pointer-events: none;
+
+      box-shadow:
+        0 0 10px rgba(0,0,0,0.5);
+    }
+
+    .slider-button {
+      position: absolute;
+
+      top: 50%;
+      left: 50%;
+
+      transform: translate(-50%,-50%);
+
+      width: 46px;
+      height: 46px;
+
+      background: white;
+
+      border-radius: 50%;
+
+      color: black;
+
+      display: flex;
+
+      align-items: center;
+      justify-content: center;
+
+      font-weight: bold;
+
+      font-size: 18px;
+
+      box-shadow:
+        0 0 15px rgba(0,0,0,0.4);
+    }
+
+    .slider-label {
+      position: absolute;
+
+      top: 20px;
+
+      padding: 7px 12px;
+
+      border-radius: 999px;
+
+      background: rgba(0,0,0,0.55);
+
+      backdrop-filter: blur(8px);
+
+      font-size: 0.75rem;
+
+      font-weight: 700;
+
+      z-index: 10;
+    }
+
+    .label-before {
+      left: 20px;
+    }
+
+    .label-after {
+      right: 20px;
+    }
+
+    /* =========================
+       VIDEO
+    ========================== */
+
+    .tutorial-section {
+      padding: 80px 0;
+
+      background: rgba(13,17,26,0.4);
+
+      border-top: 1px solid var(--card-border);
+
+      border-bottom: 1px solid var(--card-border);
+    }
+
+    .video-wrapper {
+      max-width: 800px;
+
+      margin: 40px auto 0;
+
+      border-radius: 16px;
+
+      overflow: hidden;
+
+      border: 1px solid var(--card-border);
+
+      box-shadow:
+        0 20px 40px rgba(0,0,0,0.6);
+
+      background: #000;
+
+      aspect-ratio: 16/9;
+    }
+
+    .video-wrapper iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    /* =========================
+       SECURITY
+    ========================== */
+
+    .grid-3 {
+      display: grid;
+
+      grid-template-columns:
+        repeat(3,1fr);
+
+      gap: 24px;
+
+      margin-top: 40px;
+    }
+
+    .trust-card {
+      background: var(--card-bg);
+
+      border: 1px solid var(--card-border);
+
+      padding: 30px;
+
+      border-radius: 16px;
+
+      transition: 0.3s;
+    }
+
+    .trust-card:hover {
+      transform: translateY(-5px);
+    }
+
+    .trust-icon {
+      font-size: 2rem;
+
+      margin-bottom: 16px;
+    }
+
+    /* =========================
+       FAQ
+    ========================== */
+
+    .faq-title-wrap {
+      text-align: center;
+
+      margin-bottom: 40px;
+    }
+
+    .faq-main-title {
+      font-size: 2.5rem;
+
+      font-weight: 800;
+    }
+
+    .faq-sub-title {
+      font-size: 0.85rem;
+
+      color: var(--text-sub);
+
+      opacity: 0.6;
+
+      margin-top: 4px;
+
+      text-transform: uppercase;
+
+      letter-spacing: 1px;
+    }
+
+    .faq-accordion {
+      max-width: 800px;
+
+      margin: auto;
+
+      display: flex;
+
+      flex-direction: column;
+
+      gap: 16px;
+    }
+
+    .faq-item {
+      background: var(--card-bg);
+
+      border: 1px solid var(--card-border);
+
+      border-radius: 12px;
+
+      overflow: hidden;
+
+      cursor: pointer;
+    }
+
+    .faq-question {
+      padding: 20px 24px;
+
+      font-weight: 600;
+
+      display: flex;
+
+      justify-content: space-between;
+
+      align-items: center;
+    }
+
+    .faq-answer {
+      padding: 0 24px 20px;
+
+      color: var(--text-sub);
+
+      font-size: 0.95rem;
+
+      line-height: 1.6;
+
+      display: none;
+    }
+
+    .faq-item.active .faq-answer {
+      display: block;
+    }
+
+    /* =========================
+       CONTACT
+    ========================== */
+
+    .contact-section {
+      border-top: 1px solid var(--card-border);
+    }
+
+    .contact-form {
+      max-width: 600px;
+
+      margin: auto;
+
+      display: flex;
+
+      flex-direction: column;
+
+      gap: 16px;
+    }
+
+    .form-group input,
+    .form-group textarea {
+      width: 100%;
+
+      background: var(--card-bg);
+
+      border: 1px solid var(--card-border);
+
+      padding: 14px;
+
+      border-radius: 10px;
+
+      color: white;
+
+      outline: none;
+    }
+
+    .form-group textarea {
+      resize: vertical;
+    }
+
+    /* =========================
+       AI CHAT
+    ========================== */
+
+    .ai-chat-btn {
+      position: fixed;
+
+      bottom: 30px;
+      right: 30px;
+
+      width: 60px;
+      height: 60px;
+
+      border-radius: 50%;
+
+      display: flex;
+
+      align-items: center;
+      justify-content: center;
+
+      background:
+        linear-gradient(
+          135deg,
+          var(--accent-cyan),
+          var(--accent-purple)
+        );
+
+      cursor: pointer;
+
+      box-shadow:
+        0 10px 25px rgba(168,85,247,0.4);
+
+      z-index: 2000;
+
+      font-size: 25px;
+    }
+
+    .ai-chat-box {
+      position: fixed;
+
+      bottom: 100px;
+      right: 30px;
+
+      width: 360px;
+      height: 480px;
+
+      background: #0f1420;
+
+      border: 1px solid var(--card-border);
+
+      border-radius: 20px;
+
+      box-shadow:
+        0 20px 50px rgba(0,0,0,0.8);
+
+      z-index: 2000;
+
+      display: none;
+
+      flex-direction: column;
+
+      overflow: hidden;
+    }
+
+    .ai-chat-header {
+      padding: 16px;
+
+      border-bottom: 1px solid var(--card-border);
+
+      display: flex;
+
+      justify-content: space-between;
+
+      font-weight: 700;
+    }
+
+    .ai-chat-messages {
+      flex: 1;
+
+      padding: 16px;
+
+      overflow-y: auto;
+
+      display: flex;
+
+      flex-direction: column;
+
+      gap: 12px;
+    }
+
+    .msg {
+      max-width: 80%;
+
+      padding: 10px 14px;
+
+      border-radius: 12px;
+
+      font-size: 0.88rem;
+
+      line-height: 1.4;
+    }
+
+    .msg-bot {
+      background: rgba(56,189,248,0.15);
+
+      border: 1px solid rgba(56,189,248,0.2);
+
+      align-self: flex-start;
+    }
+
+    .msg-user {
+      background: var(--accent-purple);
+
+      align-self: flex-end;
+
+      color: white;
+    }
+
+    .ai-chat-input {
+      padding: 12px;
+
+      border-top: 1px solid var(--card-border);
+
+      display: flex;
+
+      gap: 8px;
+    }
+
+    .ai-chat-input input {
+      flex: 1;
+
+      background: rgba(255,255,255,0.05);
+
+      border: 1px solid var(--card-border);
+
+      padding: 8px 14px;
+
+      border-radius: 999px;
+
+      color: white;
+
+      outline: none;
+    }
+
+    .ai-chat-input button {
+      background: var(--accent-cyan);
+
+      border: none;
+
+      padding: 8px 16px;
+
+      border-radius: 999px;
+
+      font-weight: 700;
+
+      cursor: pointer;
+    }
+
+    /* =========================
+       FOOTER
+    ========================== */
+
+    footer {
+      text-align: center;
+
+      padding: 40px 20px;
+
+      color: var(--text-sub);
+
+      font-size: 0.85rem;
+
+      border-top: 1px solid var(--card-border);
+    }
+
+    /* =========================
+       MOBILE
+    ========================== */
+
+    @media (max-width: 800px) {
+
+      header {
+        top: 10px;
+        width: 94%;
+      }
+
+      nav {
+        padding: 10px 14px;
+      }
+
+      .nav-links {
+        display: none;
+      }
+
+      .nav-btn {
+        font-size: 0.72rem;
+
+        padding: 7px 12px;
+      }
+
+      .hero {
+        grid-template-columns: 1fr;
+
+        padding-top: 120px;
+
+        text-align: center;
+      }
+
+      .hero-btns {
+        justify-content: center;
+      }
+
+      .hero-title {
+        font-size: 2.5rem;
+      }
+
+      .hero-desc {
+        font-size: 0.95rem;
+      }
+
+      .grid-3 {
+        grid-template-columns: 1fr;
+      }
+
+      .slider-container {
+        height: 60vw;
+
+        min-height: 280px;
+
+        max-height: 500px;
+
+        border-radius: 14px;
+      }
+
+      .img-after img {
+        height: 100%;
+
+        width: auto;
+
+        min-width: 100%;
+
+        object-fit: cover;
+      }
+
+      .slider-button {
+        width: 42px;
+        height: 42px;
+      }
+
+      .ai-chat-box {
+        width: calc(100vw - 30px);
+
+        right: 15px;
+
+        bottom: 90px;
+      }
+
+      .ai-chat-btn {
+        right: 15px;
+
+        bottom: 15px;
+      }
+
+      .section-title {
+        font-size: 1.8rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+
+      .hero-title {
+        font-size: 2.1rem;
+      }
+
+      .badge-pill {
+        font-size: 0.65rem;
+      }
+
+      .slider-container {
+        height: 65vw;
+      }
+
+      .slider-label {
+        font-size: 0.65rem;
+
+        padding: 5px 8px;
+      }
+
+      .label-before {
+        left: 10px;
+      }
+
+      .label-after {
+        right: 10px;
+      }
+
+    }
+
+  </style>
+</head>
+
+<body>
+
+  <div id="spotlight"></div>
+
+  <!-- =========================
+       NAVIGATION
+  ========================== -->
+
+  <header>
+
+    <nav>
+
+      <div class="logo">
+
+        <div class="logo-badge"></div>
+
+        GetAShader
+
+      </div>
+
+      <ul class="nav-links">
+
+        <li>
+          <a href="#home">Home</a>
+        </li>
+
+        <li>
+          <a href="#tutorial">Tutorial</a>
+        </li>
+
+        <li>
+          <a href="#compare">Visuals</a>
+        </li>
+
+        <li>
+          <a href="#security">Safety</a>
+        </li>
+
+        <li>
+          <a href="#faq">FAQ</a>
+        </li>
+
+      </ul>
+
+      <a
+        href="https://github.com/OMouta/RobloxShadeHost"
+        target="_blank"
+        class="nav-btn"
+      >
+        ROBLOXSHADEHOST
+      </a>
+
+    </nav>
+
+  </header>
+
+
+  <!-- =========================
+       HERO
+  ========================== -->
+
+  <section class="hero container" id="home">
+
+    <div>
+
+      <div class="badge-pill">
+        ● OFFICIAL PROMOTIONAL PARTNER FOR ROBLOXSHADEHOST
+      </div>
+
+      <h1 class="hero-title">
+        Experience RobloxShadeHost.
+      </h1>
+
+      <p class="hero-desc">
+        GetAShader proudly hosts and promotes RobloxShadeHost.
+        Elevate your Roblox graphics with enhanced lighting,
+        reflections, and visual effects.
+      </p>
+
+      <div class="hero-btns">
+
+        <a
+          href="https://github.com/OMouta/RobloxShadeHost"
+          target="_blank"
+          class="btn-primary"
+        >
+          Download RobloxShadeHost
+        </a>
+
+        <a
+          href="#tutorial"
+          class="btn-secondary"
+        >
+          Watch Tutorial ↓
+        </a>
+
+      </div>
+
+    </div>
+
+
+    <div>
+
+      <div class="mockup-card">
+
+        <div class="mockup-header">
+
+          <div class="dot dot-red"></div>
+          <div class="dot dot-yellow"></div>
+          <div class="dot dot-green"></div>
+
+          <span
+            style="
+              font-size:0.75rem;
+              color:var(--text-sub);
+              margin-left:10px;
+            "
+          >
+            RobloxShadeHost Hub
+          </span>
+
+        </div>
+
+        <div
+          style="
+            background:rgba(0,0,0,0.5);
+            padding:15px;
+            border-radius:10px;
+            font-family:monospace;
+            font-size:0.8rem;
+            color:#38bdf8;
+            line-height:1.8;
+          "
+        >
+
+          &gt; Connecting to GitHub...<br>
+
+          &gt; Repository: RobloxShadeHost<br>
+
+          &gt; Shader Pipeline: Loading...<br>
+
+          &gt; Status: Ready
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- =========================
+       TUTORIAL
+  ========================== -->
+
+  <section
+    class="tutorial-section"
+    id="tutorial"
+  >
+
+    <div
+      class="container"
+      style="text-align:center;"
+    >
+
+      <h2 class="section-title">
+        RobloxShadeHost Installation Video
+      </h2>
+
+      <p class="section-sub">
+        Watch Tutorial
+      </p>
+
+      <div class="video-wrapper">
+
+        <iframe
+          src="https://www.youtube-nocookie.com/embed/0i35823ve88"
+          title="RobloxShadeHost Tutorial"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowfullscreen
+        ></iframe>
+
+      </div>
+
+      <div style="margin-top:15px;">
+
+        <a
+          href="https://youtu.be/0i35823ve88"
+          target="_blank"
+          style="
+            color:var(--accent-cyan);
+            font-size:0.9rem;
+            text-decoration:none;
+            font-weight:600;
+          "
+        >
+          Video yüklenmezse YouTube'da aç →
+        </a>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- =========================
+       BEFORE / AFTER
+  ========================== -->
+
+  <section
+    class="comparison-section container"
+    id="compare"
+  >
+
+    <div style="text-align:center;">
+
+      <h2 class="section-title">
+        Compare the Visual Difference
+      </h2>
+
+      <p class="section-sub">
+        Slide to see Roblox with default graphics versus
+        RobloxShadeHost enhanced visual preset.
+      </p>
+
+    </div>
+
+
+    <div
+      class="slider-container"
+      id="imageSlider"
+    >
+
+      <!-- BEFORE -->
+
+      <img
+        src="https://i.ibb.co/zhj7ftZ3/Ekran-g-r-nt-s-2026-09-27-122913.png"
+        alt="Roblox default graphics"
+        class="slider-img"
+      >
+
+
+      <!-- AFTER -->
+
+      <div
+        class="img-after"
+        id="afterContainer"
+      >
+
+        <img
+          src="https://i.ibb.co/jYtKrMK/Gemini-Generated-mage-lj4li4lj4li4lj4l-1.jpg"
+          alt="RobloxShadeHost shader graphics"
+        >
+
+      </div>
+
+
+      <div class="slider-label label-before">
+        BEFORE
+      </div>
+
+      <div class="slider-label label-after">
+        AFTER
+      </div>
+
+
+      <div
+        class="slider-handle"
+        id="sliderHandle"
+      >
+
+        <div class="slider-button">
+          ↔
+        </div>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- =========================
+       SECURITY
+  ========================== -->
+
+  <section
+    class="security-section container"
+    id="security"
+  >
+
+    <div style="text-align:center;">
+
+      <h2 class="section-title">
+        Serious Trust & Security
+      </h2>
+
+      <p class="section-sub">
+        Learn more about the project and its architecture.
+      </p>
+
+    </div>
+
+
+    <div class="grid-3">
+
+      <div class="trust-card">
+
+        <div class="trust-icon">
+          🛡️
+        </div>
+
+        <h3>
+          Open Source Code
+        </h3>
+
+        <p
+          style="
+            color:var(--text-sub);
+            font-size:0.9rem;
+            margin-top:8px;
+            line-height:1.6;
+          "
+        >
+          RobloxShadeHost is available through its GitHub
+          repository for community inspection.
+        </p>
+
+      </div>
+
+
+      <div class="trust-card">
+
+        <div class="trust-icon">
+          🔒
+        </div>
+
+        <h3>
+          Transparent Project
+        </h3>
+
+        <p
+          style="
+            color:var(--text-sub);
+            font-size:0.9rem;
+            margin-top:8px;
+            line-height:1.6;
+          "
+        >
+          Check the project's source code and documentation
+          before using it.
+        </p>
+
+      </div>
+
+
+      <div class="trust-card">
+
+        <div class="trust-icon">
+          ⚡
+        </div>
+
+        <h3>
+          Visual Performance
+        </h3>
+
+        <p
+          style="
+            color:var(--text-sub);
+            font-size:0.9rem;
+            margin-top:8px;
+            line-height:1.6;
+          "
+        >
+          Shader effects can affect performance depending
+          on your hardware and selected settings.
+        </p>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- =========================
+       FAQ
+  ========================== -->
+
+  <section
+    class="faq-section container"
+    id="faq"
+  >
+
+    <div class="faq-title-wrap">
+
+      <h2 class="faq-main-title">
+        FAQ
+      </h2>
+
+      <div class="faq-sub-title">
+        Frequently Asked Questions
+      </div>
+
+    </div>
+
+
+    <div class="faq-accordion">
+
+
+      <div class="faq-item">
+
+        <div class="faq-question">
+
+          What is GetAShader's connection to RobloxShadeHost?
+
+          <span>+</span>
+
+        </div>
+
+        <div class="faq-answer">
+
+          GetAShader is a promotional portal and custom
+          interface designed to showcase RobloxShadeHost.
+
+        </div>
+
+      </div>
+
+
+      <div class="faq-item">
+
+        <div class="faq-question">
+
+          Where can I download RobloxShadeHost?
+
+          <span>+</span>
+
+        </div>
+
+        <div class="faq-answer">
+
+          You can visit the official GitHub repository linked
+          throughout this page.
+
+        </div>
+
+      </div>
+
+
+      <div class="faq-item">
+
+        <div class="faq-question">
+
+          How do I open the configuration menu?
+
+          <span>+</span>
+
+        </div>
+
+        <div class="faq-answer">
+
+          According to the current project information,
+          the HOME key can be used to open the overlay menu.
+
+        </div>
+
+      </div>
+
+
+      <div class="faq-item">
+
+        <div class="faq-question">
+
+          Does it affect FPS?
+
+          <span>+</span>
+
+        </div>
+
+        <div class="faq-answer">
+
+          Shader effects can reduce FPS depending on your
+          graphics card, resolution, Roblox settings and
+          selected shader preset.
+
+        </div>
+
+      </div>
+
+
+      <div class="faq-item">
+
+        <div class="faq-question">
+
+          Can I use it on lower-end PCs?
+
+          <span>+</span>
+
+        </div>
+
+        <div class="faq-answer">
+
+          Performance depends on the hardware and shader
+          settings. Lighter settings generally require
+          fewer resources than heavier visual effects.
+
+        </div>
+
+      </div>
+
+
+      <div class="faq-item">
+
+        <div class="faq-question">
+
+          Where can I get support?
+
+          <span>+</span>
+
+        </div>
+
+        <div class="faq-answer">
+
+          You can use the contact form below or check the
+          project's GitHub issues and documentation.
+
+        </div>
+
+      </div>
+
+
+    </div>
+
+  </section>
+
+
+  <!-- =========================
+       CONTACT
+  ========================== -->
+
+  <section class="contact-section container">
+
+    <div
+      style="
+        text-align:center;
+        margin-bottom:30px;
+      "
+    >
+
+      <h2 class="section-title">
+        Direct Contact
+      </h2>
+
+      <p class="section-sub">
+        Have questions or inquiries?
+        Send a message directly.
+      </p>
+
+    </div>
+
+
+    <form
+      class="contact-form"
+      action="mailto:mustafaninhesabi3419@gmail.com"
+      method="post"
+      enctype="text/plain"
+    >
+
+      <div class="form-group">
+
+        <input
+          type="text"
+          name="name"
+          placeholder="Your Name or Username"
+          required
+        >
+
+      </div>
+
+
+      <div class="form-group">
+
+        <input
+          type="email"
+          name="email"
+          placeholder="Your Email Address"
+          required
+        >
+
+      </div>
+
+
+      <div class="form-group">
+
+        <textarea
+          name="message"
+          rows="5"
+          placeholder="Describe your inquiry..."
+          required
+        ></textarea>
+
+      </div>
+
+
+      <button
+        type="submit"
+        class="btn-primary"
+        style="
+          width:100%;
+          cursor:pointer;
+        "
+      >
+        Send Message
+      </button>
+
+    </form>
+
+  </section>
+
+
+  <!-- =========================
+       FOOTER
+  ========================== -->
+
+  <footer>
+
+    <p>
+      © 2026 GetAShader.
+      Promotional portal for RobloxShadeHost by OMouta.
+    </p>
+
+  </footer>
+
+
+  <!-- =========================
+       AI CHAT BUTTON
+  ========================== -->
+
+  <div
+    class="ai-chat-btn"
+    id="aiBtn"
+    title="AI Support"
+  >
+    💬
+  </div>
+
+
+  <!-- =========================
+       AI CHAT BOX
+  ========================== -->
+
+  <div
+    class="ai-chat-box"
+    id="aiBox"
+  >
+
+    <div class="ai-chat-header">
+
+      <span>
+        🤖 GetAShader AI
+      </span>
+
+      <span
+        id="aiClose"
+        style="cursor:pointer;"
+      >
+        ✕
+      </span>
+
+    </div>
+
+
+    <div
+      class="ai-chat-messages"
+      id="chatMsgs"
+    >
+
+      <div class="msg msg-bot">
+
+        Merhaba! 👋 Ben GetAShader
+        yardımcı asistanıyım.
+
+        RobloxShadeHost, kurulum, shader,
+        FPS ve site hakkında soru sorabilirsin.
+
+      </div>
+
+    </div>
+
+
+    <div class="ai-chat-input">
+
+      <input
+        type="text"
+        id="chatInput"
+        placeholder="Bir soru sor..."
+      >
+
+      <button id="chatSend">
+        Send
+      </button>
+
+    </div>
+
+  </div>
+
+
+  <!-- =========================
+       JAVASCRIPT
+  ========================== -->
+
+  <script>
+
+    /* =========================
+       MOUSE SPOTLIGHT
+    ========================== */
+
+    const spotlight =
+      document.getElementById("spotlight");
+
+    document.addEventListener(
+      "mousemove",
+      function(e) {
+
+        spotlight.style.setProperty(
+          "--mouse-x",
+          e.clientX + "px"
+        );
+
+        spotlight.style.setProperty(
+          "--mouse-y",
+          e.clientY + "px"
+        );
+
+      }
+    );
+
+
+    /* =========================
+       BEFORE / AFTER SLIDER
+       POINTER EVENTS
+       PC + TABLET + PHONE
+    ========================== */
+
+    const slider =
+      document.getElementById("imageSlider");
+
+    const afterContainer =
+      document.getElementById("afterContainer");
+
+    const handle =
+      document.getElementById("sliderHandle");
+
+    let dragging = false;
+
+
+    function setSliderPosition(clientX) {
+
+      const rect =
+        slider.getBoundingClientRect();
+
+      let position =
+        clientX - rect.left;
+
+      position =
+        Math.max(
+          0,
+          Math.min(
+            position,
+            rect.width
+          )
+        );
+
+      const percentage =
+        (position / rect.width) * 100;
+
+
+      afterContainer.style.width =
+        percentage + "%";
+
+
+      handle.style.left =
+        percentage + "%";
+
+    }
+
+
+    slider.addEventListener(
+      "pointerdown",
+      function(e) {
+
+        dragging = true;
+
+        slider.setPointerCapture(
+          e.pointerId
+        );
+
+        setSliderPosition(
+          e.clientX
+        );
+
+      }
+    );
+
+
+    slider.addEventListener(
+      "pointermove",
+      function(e) {
+
+        if (!dragging) return;
+
+        setSliderPosition(
+          e.clientX
+        );
+
+      }
+    );
+
+
+    slider.addEventListener(
+      "pointerup",
+      function() {
+
+        dragging = false;
+
+      }
+    );
+
+
+    slider.addEventListener(
+      "pointercancel",
+      function() {
+
+        dragging = false;
+
+      }
+    );
+
+
+    /* =========================
+       FAQ
+    ========================== */
+
+    const faqItems =
+      document.querySelectorAll(
+        ".faq-item"
+      );
+
+
+    faqItems.forEach(
+      function(item) {
+
+        item.addEventListener(
+          "click",
+          function() {
+
+            item.classList.toggle(
+              "active"
+            );
+
+          }
+        );
+
+      }
+    );
+
+
+    /* =========================
+       AI CHAT
+    ========================== */
+
+    const aiBtn =
+      document.getElementById("aiBtn");
+
+    const aiBox =
+      document.getElementById("aiBox");
+
+    const aiClose =
+      document.getElementById("aiClose");
+
+    const chatInput =
+      document.getElementById("chatInput");
+
+    const chatSend =
+      document.getElementById("chatSend");
+
+    const chatMsgs =
+      document.getElementById("chatMsgs");
+
+
+    aiBtn.addEventListener(
+      "click",
+      function() {
+
+        if (
+          aiBox.style.display === "flex"
+        ) {
+
+          aiBox.style.display = "none";
+
+        } else {
+
+          aiBox.style.display = "flex";
+
+          chatInput.focus();
+
+        }
+
+      }
+    );
+
+
+    aiClose.addEventListener(
+      "click",
+      function() {
+
+        aiBox.style.display = "none";
+
+      }
+    );
+
+
+    /* =========================
+       SIMPLE AI KNOWLEDGE
+    ========================== */
+
+    const botKnowledge = {
+
+      download:
+        "RobloxShadeHost'u resmi GitHub repository'sinden indirebilirsin.",
+
+      github:
+        "Resmi repository: github.com/OMouta/RobloxShadeHost",
+
+      fps:
+        "FPS performansı bilgisayarına, Roblox ayarlarına ve kullandığın shader efektlerinin yoğunluğuna bağlıdır.",
+
+      shader:
+        "Shader görsellerini Before / After bölümünde karşılaştırabilirsin.",
+
+      key:
+        "Mevcut proje bilgisine göre overlay menüsünü açmak için HOME tuşu kullanılabilir.",
+
+      home:
+        "Mevcut proje bilgisine göre overlay menüsünü açmak için HOME tuşu kullanılabilir.",
+
+      install:
+        "Kurulum için yukarıdaki YouTube tutorial videosunu ve GitHub README dosyasını kontrol edebilirsin.",
+
+      tutorial:
+        "Kurulum videosunu Tutorial bölümünde bulabilirsin.",
+
+      help:
+        "Kurulum, shader, FPS, GitHub veya site hakkında soru sorabilirsin.",
+
+      merhaba:
+        "Merhaba! 👋 Sana nasıl yardımcı olabilirim?",
+
+      selam:
+        "Selam! 👋 RobloxShadeHost hakkında ne öğrenmek istiyorsun?"
+
+    };
+
+
+    function sendAiMessage() {
+
+      const text =
+        chatInput.value.trim();
+
+
+      if (!text) return;
+
+
+      /* USER MESSAGE */
+
+      const userMessage =
+        document.createElement("div");
+
+      userMessage.className =
+        "msg msg-user";
+
+      userMessage.innerText =
+        text;
+
+      chatMsgs.appendChild(
+        userMessage
+      );
+
+
+      chatInput.value = "";
+
+
+      /* BOT */
+
+      setTimeout(
+        function() {
+
+          const lower =
+            text.toLowerCase();
+
+
+          let reply =
+            "Bununla ilgili elimde net bir bilgi yok. GitHub README veya Tutorial bölümünü kontrol edebilirsin.";
+
+
+          for (
+            const key in botKnowledge
+          ) {
+
+            if (
+              lower.includes(key)
+            ) {
+
+              reply =
+                botKnowledge[key];
+
+              break;
+
+            }
+
+          }
+
+
+          const botMessage =
+            document.createElement("div");
+
+          botMessage.className =
+            "msg msg-bot";
+
+          botMessage.innerText =
+            reply;
+
+
+          chatMsgs.appendChild(
+            botMessage
+          );
+
+
+          chatMsgs.scrollTop =
+            chatMsgs.scrollHeight;
+
+        },
+        400
+      );
+
+    }
+
+
+    chatSend.addEventListener(
+      "click",
+      sendAiMessage
+    );
+
+
+    chatInput.addEventListener(
+      "keydown",
+      function(e) {
+
+        if (e.key === "Enter") {
+
+          sendAiMessage();
+
+        }
+
+      }
+    );
+
+  </script>
+
+</body>
+</html>
